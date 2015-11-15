@@ -87,13 +87,7 @@ func callTankUtility(insecure bool, uri string, user string, password string, v 
 	if http_err != nil {
 		fmt.Printf("Error: %s\n", http_err)
 	} else {
-		var json_message []byte
-		json_message, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err)
-		}
-		err = json.Unmarshal(json_message, &v)
-		if err != nil {
+		if json.NewDecoder(resp.Body).Decode(&v); err != nil {
 			fmt.Printf("Error: %s\n", err)
 		}
 	}
