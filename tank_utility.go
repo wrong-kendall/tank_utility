@@ -72,86 +72,58 @@ func getHttpClient(insecure bool) (*http.Client) {
 	return client
 }
 
-func GetToken(credentials_file string, tank_utility_endpoint string, insecure bool) string {
+func callTankUtility(insecure bool, uri string, user string, password string, v interface{}) {
 	var err error
-	user, password := readCredentialsFile(credentials_file)
 	client := getHttpClient(insecure)
-
-	path := []string{tank_utility_endpoint, "getToken"}
-	uri := strings.Join(path, "/")
 	req, req_err := http.NewRequest("GET", uri, nil)
 	if req_err != nil {
 		fmt.Printf("Request error: %s\n", req_err)
 	}
 	fmt.Printf("Using %s\n", uri)
-	req.SetBasicAuth(user, password)
+	if user != "" && password != "" {
+		req.SetBasicAuth(user, password)
+	}
 	resp, http_err := client.Do(req)
 	if http_err != nil {
 		fmt.Printf("Error: %s\n", http_err)
 	} else {
-		var token_response TokenResponse
 		var json_message []byte
 		json_message, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("Error: %s\n", err)
 		}
-		err = json.Unmarshal(json_message, &token_response)
+		err = json.Unmarshal(json_message, &v)
 		if err != nil {
 			fmt.Printf("Error: %s\n", err)
 		}
-		return token_response.Token
 	}
-	return ""
+}
+
+func GetToken(credentials_file string, tank_utility_endpoint string, insecure bool) string {
+	user, password := readCredentialsFile(credentials_file)
+
+	path := []string{tank_utility_endpoint, "getToken"}
+	uri := strings.Join(path, "/")
+	var token_response TokenResponse
+	callTankUtility(insecure, uri, user, password, &token_response)
+	return token_response.Token
 }
 
 func GetDeviceList(token string, tank_utility_endpoint string, insecure bool) []string {
-	var err error
-	client := getHttpClient(insecure)
+	var devices_response DeviceList
 
 	path := []string{tank_utility_endpoint, "devices"}
 	uri := strings.Join(path, "/") + "?token=" + token
-	resp, http_err := client.Get(uri)
-
-	if http_err != nil {
-		fmt.Printf("Error: %s\n", http_err)
-	} else {
-		var devices_response DeviceList
-		var json_message []byte
-		json_message, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err)
-		}
-		err = json.Unmarshal(json_message, &devices_response)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err)
-		}
-		return devices_response.Devices
-	}
-	return make([]string, 0)
+	callTankUtility(insecure, uri, "", "", &devices_response)
+	return devices_response.Devices
 }
 
 func GetDeviceInfo(device string, token string, tank_utility_endpoint string, insecure bool) DeviceInfo {
-	var err error
 	var device_response DeviceInfo
-	client := getHttpClient(insecure)
 
 	path := []string{tank_utility_endpoint, "devices", device}
 	uri := strings.Join(path, "/") + "?token=" + token
-
-	resp, http_err := client.Get(uri)
-	if http_err != nil {
-		fmt.Printf("Error: %s\n", http_err)
-	} else {
-		var json_message []byte
-		json_message, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err)
-		}
-		err = json.Unmarshal(json_message, &device_response)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err)
-		}
-	}
+	callTankUtility(insecure, uri, "", "", &device_response)
 	return device_response
 }
 
