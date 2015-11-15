@@ -93,23 +93,23 @@ func callTankUtility(insecure bool, uri string, user string, password string, v 
 	}
 }
 
-func GetToken(credentials_file string, tank_utility_endpoint string, insecure bool) string {
+func GetToken(credentials_file string, tank_utility_endpoint string, insecure bool) TokenResponse {
 	user, password := readCredentialsFile(credentials_file)
 
 	path := []string{tank_utility_endpoint, "getToken"}
 	uri := strings.Join(path, "/")
 	var token_response TokenResponse
 	callTankUtility(insecure, uri, user, password, &token_response)
-	return token_response.Token
+	return token_response
 }
 
-func GetDeviceList(token string, tank_utility_endpoint string, insecure bool) []string {
+func GetDeviceList(token string, tank_utility_endpoint string, insecure bool) DeviceList {
 	var devices_response DeviceList
 
 	path := []string{tank_utility_endpoint, "devices"}
 	uri := strings.Join(path, "/") + "?token=" + token
 	callTankUtility(insecure, uri, "", "", &devices_response)
-	return devices_response.Devices
+	return devices_response
 }
 
 func GetDeviceInfo(device string, token string, tank_utility_endpoint string, insecure bool) DeviceInfo {
@@ -124,8 +124,8 @@ func GetDeviceInfo(device string, token string, tank_utility_endpoint string, in
 
 func main() {
 	flag.Parse()
-	token := GetToken(*credentials_file, *tank_utility_endpoint, *insecure)
-	device_list := GetDeviceList(token, *tank_utility_endpoint, *insecure)
+	token := GetToken(*credentials_file, *tank_utility_endpoint, *insecure).Token
+	device_list := GetDeviceList(token, *tank_utility_endpoint, *insecure).Devices
 	for i := 0; i < len(device_list); i++ {
 		var device_info DeviceInfo
 		device_info = GetDeviceInfo(device_list[0], token, *tank_utility_endpoint, *insecure)
