@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+//TODO(kendall): Refactor http client code (client creation + http requests)
+//TODO(kendall): Investigate returning error from each method.
+//TODO(kendall): Refactor URL building.
+//TODO(kendall): Support reading a token file instead.
+//TODO(kendall): Separate library from script to dump info.
+//TODO(kendall): Replace Printf with logging and error/abort as appropriate.
+//TODO(kendall): Reduce duplication.
+
 var insecure = flag.Bool("insecure", true, "Whether to skip certificate checks.")
 var credentials_file = flag.String("credentials_file", "", "Path to read username and pass from.")
 var output_token_file = flag.String("output_token_file", "tank_utility.token", "Path to write the token to.")
