@@ -20,6 +20,7 @@ import (
 
 var insecure = flag.Bool("insecure", true, "Whether to skip certificate checks.")
 var credentials_file = flag.String("credentials_file", "", "Path to read username and pass from.")
+var token_file = flag.String("token_file", "", "Path to read the API token from (or write to).")
 var output_token_file = flag.String("output_token_file", "tank_utility.token", "Path to write the token to.")
 var tank_utility_endpoint = flag.String("tank_utility_endpoint", "https://data.tankutility.com/api", "API endpoint for Tank Utility")
 
@@ -53,7 +54,7 @@ func readCredentialsFile(credentials_file string) (string, string) {
 	var credentials []byte
 	var err error
 	if credentials, err = ioutil.ReadFile(credentials_file); err != nil {
-		fmt.Printf("Could not read credentials file: %s\n", credentials_file)
+		fmt.Printf("Could not read credentials file: %s\n", err)
 	}
 	credential_parts := strings.SplitN(strings.TrimSpace(string(credentials)), ":", 2)
 	return credential_parts[0], credential_parts[1]
@@ -121,10 +122,34 @@ func GetDeviceInfo(device string, token string, tank_utility_endpoint string, in
 	return device_response
 }
 
+func ReadTokenFromFile(token_file string) TokenResponse {
+	var err error
+	var token []byte
+	var token_response TokenResponse
+	if token, err = ioutil.ReadFile(token_file); err != nil {
+		fmt.Printf("Could not read token file: %s\n", err)
+	}
+	if json.Unmarshal(token, &token_response); err != nil {
+		fmt.Printf("Error: %s\n", err)
+	}
+	return token_response
+}
+
+func WriteTokenToFile(token_file string, token_response TokenResponse) {
+	var err error
+	var token []byte
+	if token, err = json.Marshal(token_response); err != nil {
+		fmt.Printf("Error: %s\n", err)
+	} else {
+		ioutil.WriteFile(token_file, token, 0644)
+	}
+}
 
 func main() {
 	flag.Parse()
-	token := GetToken(*credentials_file, *tank_utility_endpoint, *insecure).Token
+	token_response := GetToken(*credentials_file, *tank_utility_endpoint, *insecure)
+	WriteTokenToFile(*token_file, token_response)
+	token := ReadTokenFromFile(*token_file).Token
 	device_list := GetDeviceList(token, *tank_utility_endpoint, *insecure).Devices
 	for i := 0; i < len(device_list); i++ {
 		var device_info DeviceInfo
