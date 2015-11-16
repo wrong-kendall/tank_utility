@@ -1,8 +1,7 @@
-package main
+package tank_utility
 import (
 	"encoding/json"
 	"crypto/tls"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -17,12 +16,6 @@ import (
 //TODO(kendall): Replace Printf with logging and error/abort as appropriate.
 //TODO(kendall): Reduce duplication.
 //TODO(kendall): Add DeviceId to DeviceInfo struct.
-
-var insecure = flag.Bool("insecure", true, "Whether to skip certificate checks.")
-var credentials_file = flag.String("credentials_file", "", "Path to read username and pass from.")
-var token_file = flag.String("token_file", "", "Path to read the API token from (or write to).")
-var output_token_file = flag.String("output_token_file", "tank_utility.token", "Path to write the token to.")
-var tank_utility_endpoint = flag.String("tank_utility_endpoint", "https://data.tankutility.com/api", "API endpoint for Tank Utility")
 
 type TankReading struct {
 	Tank float64
@@ -142,18 +135,5 @@ func WriteTokenToFile(token_file string, token_response TokenResponse) {
 		fmt.Printf("Error: %s\n", err)
 	} else {
 		ioutil.WriteFile(token_file, token, 0644)
-	}
-}
-
-func main() {
-	flag.Parse()
-	token_response := GetToken(*credentials_file, *tank_utility_endpoint, *insecure)
-	WriteTokenToFile(*token_file, token_response)
-	token := ReadTokenFromFile(*token_file).Token
-	device_list := GetDeviceList(token, *tank_utility_endpoint, *insecure).Devices
-	for i := 0; i < len(device_list); i++ {
-		var device_info DeviceInfo
-		device_info = GetDeviceInfo(device_list[0], token, *tank_utility_endpoint, *insecure)
-		fmt.Printf("%#v\n", device_info)
 	}
 }
