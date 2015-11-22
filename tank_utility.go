@@ -73,7 +73,6 @@ func callTankUtility(insecure bool, uri string, user string, password string, v 
 	if req_err != nil {
 		fmt.Printf("Request error: %s\n", req_err)
 	}
-	fmt.Printf("Using %s\n", uri)
 	if user != "" && password != "" {
 		req.SetBasicAuth(user, password)
 	}
