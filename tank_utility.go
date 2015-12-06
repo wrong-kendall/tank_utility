@@ -77,6 +77,7 @@ func callTankUtility(insecure bool, uri string, user string, password string, v 
 		req.SetBasicAuth(user, password)
 	}
 	resp, http_err := client.Do(req)
+	defer resp.Body.Close()
 	if http_err != nil {
 		fmt.Printf("Error: %s\n", http_err)
 	} else {
